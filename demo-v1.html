@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Nutrition Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.2em;
+        }
+        
+        .main-content {
+            padding: 40px;
+        }
+        
+        .input-section {
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .input-section h3 {
+            color: #1e293b;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+        
+        .food-input {
+            width: 100%;
+            padding: 18px;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .food-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .model-select {
+            padding: 12px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 150px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .consistency-test {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .consistency-test h4 {
+            color: #92400e;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .test-input {
+            padding: 8px 12px;
+            border: 1px solid #d97706;
+            border-radius: 6px;
+            font-size: 0.9em;
+            width: 80px;
+        }
+        
+        .btn-secondary {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .results-container {
+            display: grid;
+            gap: 25px;
+        }
+        
+        .result-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        
+        .result-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .result-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .status-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .nutrition-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .nutrition-label {
+            font-size: 0.85em;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .nutrition-value {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .nutrition-unit {
+            font-size: 0.7em;
+            color: #64748b;
+            margin-left: 2px;
+        }
+        
+        .prompt-details {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .prompt-details summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 10px;
+        }
+        
+        .prompt-text {
+            background: #ffffff;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #374151;
+            border-left: 3px solid #667eea;
+            margin-top: 10px;
+        }
+        
+        .consistency-summary {
+            background: #ecfdf5;
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .consistency-summary.inconsistent {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #64748b;
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e2e8f0;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .example-queries {
+            background: #e0e7ff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border-left: 4px solid #4f46e5;
+        }
+
+        .example-queries h4 {
+            color: #3730a3;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .example-item {
+            background: white;
+            margin: 8px 0;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .example-item:hover {
+            background: #f8fafc;
+            border-left-color: #4f46e5;
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Nutrition Calculator</h1>
+            <p>Making AI models consistent for calorie counting</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <h3>🍔 Food Description</h3>
+                <textarea class="food-input" 
+                         id="foodQuery" 
+                         placeholder="e.g., wendys daves single and no mayo and lettuce instead of the buns"
+                         rows="3"></textarea>
+                
+                <div class="controls">
+                    <select class="model-select" id="modelSelect">
+                        <option value="gpt-4">GPT-4 (OpenAI)</option>
+                        <option value="claude">Claude (Anthropic)</option>
+                        <option value="gemini">Gemini (Google)</option>
+                        <option value="deepseek">DeepSeek</option>
+                    </select>
+                    
+                    <button class="btn" onclick="calculateSingle()">Calculate Once</button>
+                </div>
+
+                <div class="example-queries">
+                    <h4>📝 Test These Examples:</h4>
+                    <div class="example-item" onclick="setQuery('wendys daves single and no mayo and lettuce instead of the buns')">
+                        Wendy's Dave's Single, no mayo, lettuce wrap
+                    </div>
+                    <div class="example-item" onclick="setQuery('mcdonalds big mac no pickles')">
+                        McDonald's Big Mac, no pickles
+                    </div>
+                    <div class="example-item" onclick="setQuery('6 oz grilled chicken breast with 1 cup steamed broccoli')">
+                        6 oz grilled chicken breast with steamed broccoli
+                    </div>
+                </div>
+            </div>
+
+            <div class="consistency-test">
+                <h4>🎯 Consistency Test</h4>
+                <div class="test-controls">
+                    <label>Run</label>
+                    <input type="number" class="test-input" id="testRuns" value="5" min="2" max="10">
+                    <label>times to test consistency</label>
+                    <button class="btn-secondary" onclick="runConsistencyTest()">Test Consistency</button>
+                </div>
+            </div>
+            
+            <div id="resultsContainer" class="results-container"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentResults = [];
+
+        // Optimized prompts for consistency
+        const NUTRITION_PROMPTS = {
+            system: `You are a precise nutrition calculator. You MUST provide exact numbers for calories and macros. Never use ranges or approximations.
+
+CRITICAL RULES:
+1. Always return exact whole numbers for calories, protein, carbs, fat
+2. Use reliable nutrition databases (USDA, brand websites)
+3. For modifications, calculate precise additions/subtractions
+4. Show your calculation steps
+5. Format as JSON: {"calories": 350, "protein": 25, "carbs": 15, "fat": 22, "reasoning": "calculation steps"}
+
+Examples:
+- Wendy's Dave's Single base: 570 cal, 25p, 39c, 34f
+- Remove mayo: -94 cal, 0p, 0c, -10f
+- Remove bun: -128 cal, -4p, -24c, -2f
+- Add lettuce wrap: +2 cal, 0p, 0c, 0f`,
+
+            user: (food) => `Calculate exact nutrition for: "${food}"
+
+Requirements:
+- Exact whole numbers only
+- Show calculation steps
+- Return JSON format
+- Be consistent if asked multiple times`
+        };
+
+        function setQuery(query) {
+            document.getElementById('foodQuery').value = query;
+        }
+
+        async function simulateAICall(model, prompt, food) {
+            // Simulate AI model response with some variability to test consistency
+            const baseData = {
+                'wendys daves single and no mayo and lettuce instead of the buns': {
+                    calories: 348,
+                    protein: 21,
+                    carbs: 15,
+                    fat: 22,
+                    reasoning: "Base Dave's Single (570 cal) - Mayo (94 cal) - Bun (128 cal) + Lettuce (2 cal) = 348 cal"
+                },
+                'mcdonalds big mac no pickles': {
+                    calories: 561,
+                    protein: 25,
+                    carbs: 45,
+                    fat: 33,
+                    reasoning: "Base Big Mac (563 cal) - Pickles (2 cal) = 561 cal"
+                },
+                '6 oz grilled chicken breast with 1 cup steamed broccoli': {
+                    calories: 303,
+                    protein: 55,
+                    carbs: 6,
+                    fat: 6,
+                    reasoning: "6 oz chicken breast (276 cal, 52p) + 1 cup broccoli (27 cal, 3p, 6c) = 303 cal total"
+                }
+            };
+
+            // Add some realistic variance to simulate real AI inconsistency
+            const variance = Math.random() * 0.1 - 0.05; // ±5% variance
+            const baseResult = baseData[food.toLowerCase()] || {
+                calories: 400,
+                protein: 25,
+                carbs: 30,
+                fat: 20,
+                reasoning: "Estimated based on similar foods"
+            };
+
+            // Simulate different model behaviors
+            const modelVariance = {
+                'gpt-4': 0.02,      // Usually most consistent
+                'claude': 0.03,     // Slightly more variance
+                'gemini': 0.05,     // More variance
+                'deepseek': 0.04    // Moderate variance
+            };
+
+            const modelVar = modelVariance[model] || 0.03;
+            const totalVariance = variance + (Math.random() * modelVar - modelVar/2);
+
+            const result = {
+                calories: Math.round(baseResult.calories * (1 + totalVariance)),
+                protein: Math.round(baseResult.protein * (1 + totalVariance * 0.5)),
+                carbs: Math.round(baseResult.carbs * (1 + totalVariance * 0.3)),
+                fat: Math.round(baseResult.fat * (1 + totalVariance * 0.4)),
+                reasoning: baseResult.reasoning
+            };
+
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+            
+            // Simulate occasional errors
+            if (Math.random() < 0.05) {
+                throw new Error(`${model} API error: Rate limit exceeded`);
+            }
+
+            return result;
+        }
+
+        async function calculateSingle() {
+            const food = document.getElementById('foodQuery').value.trim();
+            const model = document.getElementById('modelSelect').value;
+            
+            if (!food) {
+                alert('Please enter a food description');
+                return;
+            }
+
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultId = Date.now();
+            
+            // Add loading result
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'result-card';
+            resultDiv.id = `result-${resultId}`;
+            resultDiv.innerHTML = `
+                <div class="result-header">
+                    <div class="result-title">${model.toUpperCase()}</div>
+                    <div class="result-status status-pending">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            Calculating...
+                        </div>
+                    </div>
+                </div>
+                <div class="query-text" style="color: #64748b; margin-bottom: 15px;">
+                    "${food}"
+                </div>
+            `;
+            
+            resultsContainer.appendChild(resultDiv);
+
+            try {
+                const result = await simulateAICall(model, NUTRITION_PROMPTS.system, food);
+                
+                // Update with results
+                resultDiv.innerHTML = `
+                    <div class="result-header">
+                        <div class="result-title">${model.toUpperCase()}</div>
+                        <div class="result-status status-success">✅ Success</div>
+                    </div>
+                    <div class="query-text" style="color: #64748b; margin-bottom: 15px;">
+                        "${food}"
+                    </div>
+                    <div class="nutrition-grid">
+                        <div class="nutrition-item">
+                            <div class="nutrition-label">CALORIES</div>
+                            <div class="nutrition-value">${result.calories}<span class="nutrition-unit">kcal</span></div>
+                        </div>
+                        <div class="nutrition-item">
+                            <div class="nutrition-label">PROTEIN</div>
+                            <div class="nutrition-value">${result.protein}<span class="nutrition-unit">g</span></div>
+                        </div>
+                        <div class="nutrition-item">
+                            <div class="nutrition-label">CARBS</div>
+                            <div class="nutrition-value">${result.carbs}<span class="nutrition-unit">g</span></div>
+                        </div>
+                        <div class="nutrition-item">
+                            <div class="nutrition-label">FAT</div>
+                            <div class="nutrition-value">${result.fat}<span class="nutrition-unit">g</span></div>
+                        </div>
+                    </div>
+                    <div class="prompt-details">
+                        <details>
+                            <summary>View AI Reasoning</summary>
+                            <div class="prompt-text">${result.reasoning}</div>
+                        </details>
+                    </div>
+                `;
+                
+                currentResults.push({
+                    model,
+                    food,
+                    result,
+                    timestamp: new Date()
+                });
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result-header">
+                        <div class="result-title">${model.toUpperCase()}</div>
+                        <div class="result-status status-error">❌ Error</div>
+                    </div>
+                    <div class="query-text" style="color: #64748b; margin-bottom: 15px;">
+                        "${food}"
+                    </div>
+                    <div style="color: #dc2626; padding: 15px; background: #fee2e2; border-radius: 8px;">
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function runConsistencyTest() {
+            const food = document.getElementById('foodQuery').value.trim();
+            const model = document.getElementById('modelSelect').value;
+            const runs = parseInt(document.getElementById('testRuns').value);
+            
+            if (!food) {
+                alert('Please enter a food description');
+                return;
+            }
+
+            const resultsContainer = document.getElementById('resultsContainer');
+            const testId = Date.now();
+            
+            // Create test container
+            const testDiv = document.createElement('div');
+            testDiv.className = 'result-card';
+            testDiv.innerHTML = `
+                <div class="result-header">
+                    <div class="result-title">🎯 Consistency Test (${runs} runs)</div>
+                    <div class="result-status status-pending">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            Running tests...
+                        </div>
+                    </div>
+                </div>
+                <div class="query-text" style="color: #64748b; margin-bottom: 15px;">
+                    "${food}" using ${model.toUpperCase()}
+                </div>
+                <div id="test-progress-${testId}"></div>
+            `;
+            
+            resultsContainer.appendChild(testDiv);
+
+            const testResults = [];
+            const progressDiv = document.getElementById(`test-progress-${testId}`);
+
+            try {
+                for (let i = 0; i < runs; i++) {
+                    progressDiv.innerHTML = `<div style="margin: 10px 0;">Running test ${i + 1} of ${runs}...</div>`;
+                    
+                    const result = await simulateAICall(model, NUTRITION_PROMPTS.system, food);
+                    testResults.push(result);
+                    
+                    // Show progress
+                    progressDiv.innerHTML += `<div style="padding: 8px; background: #f8fafc; margin: 5px 0; border-radius: 6px;">
+                        Run ${i + 1}: ${result.calories} cal, ${result.protein}p, ${result.carbs}c, ${result.fat}f
+                    </div>`;
+                }
+
+                // Analyze consistency
+                const calories = testResults.map(r => r.calories);
+                const proteins = testResults.map(r => r.protein);
+                const carbs = testResults.map(r => r.carbs);
+                const fats = testResults.map(r => r.fat);
+
+                const isConsistent = (arr) => Math.max(...arr) - Math.min(...arr) <= 2;
+                const getVariance = (arr) => Math.max(...arr) - Math.min(...arr);
+
+                const caloriesConsistent = isConsistent(calories);
+                const proteinsConsistent = isConsistent(proteins);
+                const carbsConsistent = isConsistent(carbs);
+                const fatsConsistent = isConsistent(fats);
+
+                const overallConsistent = caloriesConsistent && proteinsConsistent && carbsConsistent && fatsConsistent;
+
+                // Update results
+                testDiv.innerHTML = `
+                    <div class="result-header">
+                        <div class="result-title">🎯 Consistency Test Results</div>
+                        <div class="result-status ${overallConsistent ? 'status-success' : 'status-error'}">
+                            ${overallConsistent ? '✅ Consistent' : '❌ Inconsistent'}
+                        </div>
+                    </div>
+                    <div class="query-text" style="color: #64748b; margin-bottom: 15px;">
+                        "${food}" using ${model.toUpperCase()} (${runs} runs)
+                    </div>
+                    
+                    <div class="nutrition-grid">
+                        <div class="nutrition-item">
+                            <div class="nutrition-label">CALORIES</div>
+                            <div class="nutrition-value">${Math.min(...calories)}-${Math.max(...calories)}</div>
+                            <div style="font-size: 0.8em; color: ${caloriesConsistent ? '#10b981' : '#ef4444'};">
+                                Variance: ${getVariance(calories)} ${caloriesConsistent ? '✅' : '❌'}
+                            </div>
+                        </div>
+                        <div class="nutrition-item">
+                            <div class="nutrition-label">PROTEIN</div>
+                            <div class="nutrition-value">${Math.min(...proteins)}-${Math.max(...proteins)}g</div>
+                            <div style="font-size: 0.8em; color: ${proteinsConsistent ? '#10b981' : '#ef4444'};">
+                                Variance: ${getVariance(proteins)}g ${proteinsConsistent ? '✅' : '❌'}
+                            </div>
+                        </div>
+                        <div class="nutrition-item">
+                            <div class="nutrition-label">CARBS</div>
+                            <div class="nutrition-value">${Math.min(...carbs)}-${Math.max(...carbs)}g</div>
+                            <div style="font-size: 0.8em; color: ${carbsConsistent ? '#10b981' : '#ef4444'};">
+                                Variance: ${getVariance(carbs)}g ${carbsConsistent ? '✅' : '❌'}
+                            </div>
+                        </div>
+                        <div class="nutrition-item">
+                            <div class="nutrition-label">FAT</div>
+                            <div class="nutrition-value">${Math.min(...fats)}-${Math.max(...fats)}g</div>
+                            <div style="font-size: 0.8em; color: ${fatsConsistent ? '#10b981' : '#ef4444'};">
+                                Variance: ${getVariance(fats)}g ${fatsConsistent ? '✅' : '❌'}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="consistency-summary ${overallConsistent ? '' : 'inconsistent'}">
+                        <h4>${overallConsistent ? '🎉 Good Consistency!' : '⚠️ Inconsistency Detected'}</h4>
+                        <p>${overallConsistent ? 
+                            'This model is providing consistent results for this food item.' : 
+                            'This model is showing variance in results. Consider using more structured prompting or validation.'}</p>
+                    </div>
+
+                    <div class="prompt-details">
+                        <details>
+                            <summary>View All Results</summary>
+                            <div style="max-height: 200px; overflow-y: auto; margin-top: 10px;">
+                                ${testResults.map((result, i) => `
+                                    <div style="padding: 8px; background: #f8fafc; margin: 5px 0; border-radius: 6px;">
+                                        <strong>Run ${i + 1}:</strong> ${result.calories} cal, ${result.protein}p, ${result.carbs}c, ${result.fat}f<br>
+                                        <small style="color: #64748b;">${result.reasoning}</small>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </details>
+                    </div>
+                `;
+
+            } catch (error) {
+                testDiv.innerHTML = `
+                    <div class="result-header">
+                        <div class="result-title">🎯 Consistency Test</div>
+                        <div class="result-status status-error">❌ Error</div>
+                    </div>
+                    <div style="color: #dc2626; padding: 15px; background: #fee2e2; border-radius: 8px;">
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('foodQuery').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                calculateSingle();
+            }
+        });
+    </script>
+</body>
+</html>

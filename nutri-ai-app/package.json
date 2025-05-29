@@ -1,0 +1,33 @@
+{
+  "name": "nutri-ai-app",
+  "version": "1.0.0",
+  "description": "AI-powered nutrition calculator with consistency validation",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "mobile",
+    "web",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run backend:dev\" \"npm run mobile:dev\"",
+    "backend:dev": "cd backend && npm run dev",
+    "mobile:dev": "cd mobile && npm start",
+    "web:dev": "cd web && npm run dev",
+    "build": "npm run backend:build && npm run mobile:build",
+    "backend:build": "cd backend && npm run build",
+    "mobile:build": "cd mobile && npm run build",
+    "test": "npm run backend:test && npm run mobile:test",
+    "backend:test": "cd backend && npm test",
+    "mobile:test": "cd mobile && npm test",
+    "setup": "./scripts/setup-dev.sh",
+    "deploy": "./scripts/deploy.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
